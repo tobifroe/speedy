@@ -10,3 +10,7 @@ type TestResult struct {
 	Target    string
 	CreatedAt time.Time
 }
+
+type Config struct {
+	Schedule string
+}

@@ -13,5 +13,6 @@ func New() *gorm.DB {
 		log.Fatalf(err.Error())
 	}
 	db.AutoMigrate(&TestResult{})
+	db.AutoMigrate(&Config{})
 	return db
 }

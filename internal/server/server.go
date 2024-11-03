@@ -2,15 +2,18 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 
 	"speedy/internal/database"
+	"speedy/internal/speedtest"
 )
 
 type Server struct {
@@ -26,6 +29,11 @@ func NewServer() *http.Server {
 
 		db: database.New(),
 	}
+	config := database.Config{
+		Schedule: "*/5 * * * *",
+	}
+
+	NewServer.db.FirstOrCreate(&database.Config{}, config)
 
 	// Declare Server config
 	server := &http.Server{
@@ -35,6 +43,14 @@ func NewServer() *http.Server {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
+
+	c := cron.New()
+
+	c.AddFunc(config.Schedule, func() {
+		speedtest.Speedtest("https://nbg1-speed.hetzner.com/100MB.bin")
+	})
+	c.Start()
+	log.Printf("Setup Cronjobs. Current schedule: %v", c.Entries())
 
 	return server
 }

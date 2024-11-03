@@ -16,29 +16,19 @@ func (s *Server) RegisterRoutes() http.Handler {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	e.GET("/", s.HelloWorldHandler)
-
 	e.GET("/speed", s.speedHandler)
 
 	e.GET("/recent", s.mostRecentresult)
 	e.GET("/all", s.allResults)
+	e.GET("/config", s.getConfig)
 
 	return e
-}
-
-func (s *Server) HelloWorldHandler(c echo.Context) error {
-	resp := map[string]string{
-		"message": "Hello World",
-	}
-
-	return c.JSON(http.StatusOK, resp)
 }
 
 func (s *Server) speedHandler(c echo.Context) error {
 	elapsed := speedtest.Speedtest("https://nbg1-speed.hetzner.com/100MB.bin")
 
 	resp := map[string]string{
-		"message": "Hello ",
 		"elapsed": elapsed.String(),
 	}
 	return c.JSON(http.StatusOK, resp)
@@ -70,6 +60,15 @@ func (s *Server) allResults(c echo.Context) error {
 
 	resp := allResults{
 		Results: testresults,
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func (s *Server) getConfig(c echo.Context) error {
+	var config database.Config
+	s.db.Find(&config)
+	resp := map[string]string{
+		"schedule": config.Schedule,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

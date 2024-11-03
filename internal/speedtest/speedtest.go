@@ -12,25 +12,25 @@ import (
 func Speedtest(url string) time.Duration {
 	c := make(chan time.Duration)
 	go func() {
-
+		log.Print("Running speedtest...")
 		out, err := os.Create("testfile")
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal(err.Error())
 		}
 		defer out.Close()
 
 		t := time.Now()
 		resp, err := http.Get(url)
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal(err.Error())
 		}
 		defer resp.Body.Close()
 
 		_, err = io.Copy(out, resp.Body)
 		if err != nil {
-			log.Fatalf(err.Error())
+			log.Fatal(err.Error())
 		}
-		c <- time.Now().Sub(t)
+		c <- time.Since(t)
 	}()
 	t := <-c
 	downspeed := 100 / t.Seconds()
@@ -43,5 +43,6 @@ func Speedtest(url string) time.Duration {
 	db.Create(&result)
 
 	os.Remove("testfile")
+	log.Printf("Speedtest finished. Time elapsed: %v", t.Seconds())
 	return t
 }
